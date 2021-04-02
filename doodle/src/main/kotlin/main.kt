@@ -1,4 +1,5 @@
 import com.anysolo.toyGraphics.*
+import kotlin.random.Random
 
 data class Area(val x: Int, val y: Int, val width: Int, val height: Int) {
     fun isInsideThis(a2: Area): Boolean =
@@ -11,13 +12,13 @@ class Game() {
     private val wnd = Window(400,600)
     val keyboard = Keyboard(wnd)
     var doodle = Doodle(wnd.width/2, wnd.height /2.0)
-    var slabs = Slabs(wnd.width/2 - 10,wnd.height-30)
+    var slabs = Slabs(wnd.width/2 - 10,wnd.height-30,50,10)
 
 
 
     private fun calculations(){ // Necessary calculations for the game to work
         doodle.doodleCalculations()
-        slabs.positioning()
+        slabs.slabCalculation()
        // println("Calc works!!")
         processCollisions()
     }
@@ -26,15 +27,11 @@ class Game() {
             val key = keyboard.getPressedKey()
 
             if (key != null) {
-                println(key)
-                println("key: " + key.code)
-
                 if(key.code == KeyCodes.LEFT)
                     doodle.x-=5
 
                 if(key.code == KeyCodes.RIGHT)
                     doodle.x +=5
-                println()
             }
         } while (key != null)
     }
@@ -42,15 +39,37 @@ class Game() {
     fun draw(){ // Function to draw the game
         val g = Graphics(wnd)
         g.clear()
-        slabs.drawSlabs(g)
         doodle.drawDoodle(g)
+
+        slabs.drawSlabs(g)
+
        // println("Draw works!!")
     }
 
      fun processCollisions() {
-        if (slabs.getArea().isInsideThis(doodle.getArea())) {
-            doodle.applyGravity = false
+         for(b in slabs.slabs){
+            if (Area(b.x,b.y,b.width,b.height).isInsideThis(doodle.getArea())) {
+                doodle.applyGravity = false
 
+                if(b.fill)
+                    slabs.pointsToWin+=0
+                else
+                    slabs.pointsToWin+=1
+                b.fill=true
+            }
+         }
+
+    }
+    fun preGameLogic(){
+
+        slabs.slabs.add(slabs.slab)
+
+        repeat(3){
+            slabs.slabs.add(Object(Random.nextInt(0, wnd.width),Random.nextInt(wnd.height/2+150, wnd.height),slabs.width,slabs.height,false))
+        }
+
+        repeat(5){
+            slabs.slabs.add(Object(Random.nextInt(0, wnd.width),Random.nextInt(wnd.height/2, wnd.height),slabs.width,slabs.height,false))
         }
     }
     fun run() { // Running the game putting together calculations
@@ -68,5 +87,6 @@ class Game() {
 
 fun main() {
     val game = Game()
+    game.preGameLogic()
     game.run()
 }
